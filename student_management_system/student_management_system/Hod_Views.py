@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from app.models import Course, Session_Year, CustomUser, Student
+from app.models import Course, Session_Year, CustomUser, Student, Staff
 from django.contrib import messages
 
 
@@ -162,10 +162,128 @@ def VIEW_COURSE(request):
     return render(request,'Hod/view_course.html',context)
 
 
-def EDIT_COURSE(request):
+def EDIT_COURSE(request,id):
     course = Course.objects.get(id = id)
 
     context = {
         'course': course,
     }
     return render(request,'Hod/edit_course.html',context)
+
+
+def UPDATE_COURSE(request):
+    if request.method == "POST":
+        name = request.POST.get('name')
+        course_id = request.POST.get('course_id')
+
+        course = Course.objects.get(id = course_id)
+        course.name = name
+        course.save()
+        messages.success(request,'Course is Successfully Updated!')
+        return redirect('view_course')
+
+    return render(request,'Hod/edit_course.html')
+
+
+def DELETE_COURSE(request,id):
+    course = Course.objects.get(id = id)
+    course.delete()
+    messages.success(request,'Course is Successfully Deleted!'),
+
+    return redirect('view_course')
+
+
+def ADD_STAFF(request):
+    if request.method == "POST":
+        profile_pic = request.FILES.get('profile_pic')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        address = request.POST.get('address')
+        gender = request.POST.get('gender')
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.warning(request, 'Email is Already Taken')
+            return redirect('add_staff')
+
+        if CustomUser.objects.filter(username=username).exists():
+            messages.warning(request, 'Username is Already Taken')
+            return redirect('add_staff')
+
+        else:
+            user = CustomUser(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                profie_pic=profile_pic,
+                user_type=2
+            )
+        user.set_password(password)
+        user.save()
+
+        staff = Staff(
+            admin=user,
+            address=address,
+            gender=gender,
+        )
+        staff.save()
+        messages.success(request, user.first_name + "  " + user.last_name + " is Successfully Added !")
+        return redirect('add_staff')
+
+    return render(request,'Hod/add_staff.html')
+
+
+def VIEW_STAFF(request):
+    staff = Staff.objects.all()
+
+    context = {
+        'staff': staff,
+    }
+    return render(request,'Hod/view_staff.html',context)
+
+
+def EDIT_STAFF(request,id):
+    staff = Staff.objects.all()
+
+    context = {
+        'staff': staff,
+    }
+    return render(request,'Hod/edit_staff.html',context)
+
+
+def UPDATE_STAFF(request):
+    if request.method == "POST":
+        staff_id = request.POST.get('staff_id')
+        profile_pic = request.FILES.get('profile_pic')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        address = request.POST.get('address')
+        gender = request.POST.get('gender')
+
+        user = CustomUser.objects.get(id = staff_id)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.username = username
+
+        if password != None and password != "":
+            user.set_password(password)
+        if profile_pic != None and profile_pic != "":
+            user.profie_pic = profile_pic
+        user.save()
+
+        staff = Staff.objects.get(id=staff_id)
+        staff.gender = gender
+        staff.address = address
+        staff.save()
+
+        messages.success(request, 'Staff is Successfully Updated!')
+        return redirect('view_staff')
+
+    return render(request,'Hod/edit_staff.html')
