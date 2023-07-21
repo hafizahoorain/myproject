@@ -13,5 +13,6 @@ admin.site.register(Student)
 admin.site.register(Staff)
 admin.site.register(Subject)
 admin.site.register(Staff_Notification)
+admin.site.register(Staff_leave)
 
 

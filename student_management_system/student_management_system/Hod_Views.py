@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from app.models import Course,Session_Year,CustomUser,Student,Staff,Subject,Staff_Notification
 from django.contrib import messages
+from django.shortcuts import get_object_or_404
+
 
 
 @login_required(login_url='/')
@@ -444,10 +446,17 @@ def UPDATE_SESSION(request):
 
 @login_required(login_url='/')
 def DELETE_SESSION(request,id):
-    session = Session_Year.objects.get(id = id)
+    try:
+        session = get_object_or_404(Session_Year, id=id)
+    except Session_Year.DoesNotExist:
+        # Handle the case where the Session_Year object with the provided id does not exist
+        messages.error(request, 'Session not found. Deletion failed.')
+        return redirect('view_session')
+
     session.delete()
-    messages.success(request,'Session is Successfully Deleted !')
+    messages.success(request, 'Session is Successfully Deleted!')
     return redirect('view_session')
+
 
 @login_required(login_url='/')
 def STAFF_SEND_NOTIFICATION(request):
@@ -475,3 +484,7 @@ def SAVE_STAFF_NOTIFICATION(request):
         notification.save()
         messages.success(request,'Notification is Successfully Send !')
         return redirect('staff_send_notification')
+
+
+def Staff_Leave_view(request):
+    return render(request,'Hod/staff_leave.html')
